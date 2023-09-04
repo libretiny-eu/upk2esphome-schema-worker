@@ -14,3 +14,9 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          secrets: |
+            TOKEN_USER
+            TOKEN_ADMIN
+        env:
+          TOKEN_USER: ${{ secrets.TOKEN_USER }}
+          TOKEN_ADMIN: ${{ secrets.TOKEN_ADMIN }}
