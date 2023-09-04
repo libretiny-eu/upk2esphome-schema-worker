@@ -10,8 +10,11 @@ export async function schemas(
 
 	if (request.method == "GET") {
 		let schemaKey: string
-		if ((schemaKey = url.pathname.split("/")[2]))
-			return await env.SCHEMAS.get<ObjectType>(schemaKey, "json")
+		if ((schemaKey = url.pathname.split("/")[2])) {
+			const schema = await env.SCHEMAS.get<ObjectType>(schemaKey, "json")
+			if (!schema) return new Response(null, { status: 404 })
+			return schema
+		}
 		return (await env.SCHEMAS.list()).keys.map((k) => k.name)
 	}
 

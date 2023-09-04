@@ -16,8 +16,14 @@ export async function projects(
 
 	if (request.method == "GET") {
 		let projectKey: string
-		if ((projectKey = url.pathname.split("/")[2]))
-			return await env.PROJECTS.get<ProjectData>(projectKey, "json")
+		if ((projectKey = url.pathname.split("/")[2])) {
+			const project = await env.PROJECTS.get<ProjectData>(
+				projectKey,
+				"json",
+			)
+			if (!project) return new Response(null, { status: 404 })
+			return project
+		}
 		return (await env.PROJECTS.list()).keys.map((k) => k.name)
 	}
 	if (request.method != "POST") return new Response(null, { status: 405 })

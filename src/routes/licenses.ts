@@ -14,8 +14,14 @@ export async function licenses(
 
 	if (request.method == "GET") {
 		let licenseKey: string
-		if ((licenseKey = url.pathname.split("/")[2]))
-			return await env.LICENSES.get<LicenseData>(licenseKey, "json")
+		if ((licenseKey = url.pathname.split("/")[2])) {
+			const license = await env.LICENSES.get<LicenseData>(
+				licenseKey,
+				"json",
+			)
+			if (!license) return new Response(null, { status: 404 })
+			return license
+		}
 		return (await env.LICENSES.list()).keys.map((k) => k.name)
 	}
 	if (request.method != "POST") return new Response(null, { status: 405 })

@@ -10,8 +10,14 @@ export async function products(
 
 	if (request.method == "GET") {
 		let productKey: string
-		if ((productKey = url.pathname.split("/")[2]))
-			return await env.PRODUCTS.get<ObjectType>(productKey, "json")
+		if ((productKey = url.pathname.split("/")[2])) {
+			const product = await env.PRODUCTS.get<ObjectType>(
+				productKey,
+				"json",
+			)
+			if (!product) return new Response(null, { status: 404 })
+			return product
+		}
 		return (await env.PRODUCTS.list()).keys.map((k) => k.name)
 	}
 
