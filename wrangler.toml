@@ -1,0 +1,28 @@
+name = "upk2esphome-schema-worker"
+main = "src/worker.ts"
+compatibility_date = "2023-08-21"
+node_compat = true
+
+[vars]
+#TOKEN_USER = "dXNlcjp1c2Vy"
+#TOKEN_ADMIN = "YWRtaW46bmltZGE="
+
+[[kv_namespaces]]
+binding = "PROJECTS"
+id = "a0a2df27c1b54acc830a02d71033b1f4"
+preview_id = "640a951979209cabbe23ac72bd57ebbf"
+
+[[kv_namespaces]]
+binding = "LICENSES"
+id = "165ac20c70064068989bc44405262d70"
+preview_id = "e749f943de0d75160cf53a8f4d47b96a"
+
+[[kv_namespaces]]
+binding = "PRODUCTS"
+id = "076151d897634e468c4cb139573da281"
+preview_id = "d1adb4033ddd38f3a12b93ce56181a4a"
+
+[[kv_namespaces]]
+binding = "SCHEMAS"
+id = "2c0c919bdbf54c83a553579ec7391732"
+preview_id = "baf741d45cb55d9a2cf341de2d4b4b6d"
