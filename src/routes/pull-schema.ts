@@ -201,11 +201,12 @@ export async function pullSchema(
 	const errors: string[] = (responseContext.errors = [])
 	try {
 		responseContext.detailsResponse = await unpack(
-			tuya.request({
-				path: `/v2.0/cloud/thing/${devId}`,
-				method: "GET",
-			}),
+			tuya.device.detail({ device_id: devId }),
 		)
+	} catch (e) {
+		errors.push(`${e}`)
+	}
+	try {
 		responseContext.updateResponse = await unpack(
 			tuya.request({
 				path: `/v2.0/cloud/thing/${devId}/firmware`,

@@ -35,10 +35,11 @@ export function patchContext(tuya: TuyaContext) {
 			headers: request.headers,
 			body: toJson(request.data),
 		})
+		const responseText = await r.text()
+		console.log(responseText)
 		const response = {
-			data: await r.json(),
+			data: JSON.parse(responseText),
 		}
-		console.log(JSON.stringify(response.data, null, 4))
 		return response
 	}
 	// @ts-ignore
