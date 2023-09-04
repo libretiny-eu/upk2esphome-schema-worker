@@ -5,7 +5,7 @@ node_compat = true
 
 [vars]
 # TOKEN_USER = "dXNlcjp1c2Vy"
-TOKEN_ADMIN = "YWRtaW46bmltZGE="
+# TOKEN_ADMIN = "YWRtaW46bmltZGE="
 
 [[kv_namespaces]]
 binding = "PROJECTS"
