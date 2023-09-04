@@ -4,7 +4,13 @@ import { DeviceActiveResponse } from "../api/device-types"
 import { fetchRegionEndpoint } from "../api/iot-dns"
 import { patchContext } from "../api/patch"
 import { LicenseData, ObjectType, ProjectData } from "../types"
-import { Env, getRandomLicense, getRandomProject, unpack } from "./common"
+import {
+	checkAuth,
+	Env,
+	getRandomLicense,
+	getRandomProject,
+	unpack,
+} from "./common"
 
 type RequestData = {
 	device: {
@@ -21,6 +27,7 @@ type RequestData = {
 	}
 	license?: LicenseData
 	project?: ProjectData
+	forceUpdate?: boolean
 }
 
 type ResponseData = {
@@ -49,7 +56,7 @@ export async function pullSchema(
 		return new Response(null, { status: 405 })
 	}
 
-	let { device, software, license, project } =
+	let { device, software, license, project, forceUpdate } =
 		await request.json<RequestData>()
 	if (!device) throw Error("Needs 'device' object")
 	if (!device.softwareVer)
@@ -93,7 +100,12 @@ export async function pullSchema(
 
 	// try cached results
 	const cached = await env.PRODUCTS.get<ResponseData>(productKey, "json")
-	if (cached) return cached
+	if (cached) {
+		if (!forceUpdate) return cached
+		// make sure we're admin
+		let auth
+		if ((auth = checkAuth(request, env, true))) return auth
+	}
 
 	// use provided credentials if not specified
 	project = project ?? (await getRandomProject(env))
@@ -189,7 +201,10 @@ export async function pullSchema(
 	const errors: string[] = (responseContext.errors = [])
 	try {
 		responseContext.detailsResponse = await unpack(
-			tuya.device.detail({ device_id: devId }),
+			tuya.request({
+				path: `/v2.0/cloud/thing/${devId}`,
+				method: "GET",
+			}),
 		)
 		responseContext.updateResponse = await unpack(
 			tuya.request({
