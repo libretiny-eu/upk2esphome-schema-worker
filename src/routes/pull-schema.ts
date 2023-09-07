@@ -58,9 +58,8 @@ export async function pullSchema(
 
 	let { device, software, license, project, forceUpdate } =
 		await request.json<RequestData>()
+
 	if (!device) throw Error("Needs 'device' object")
-	if (!device.softwareVer)
-		throw Error("Needs 'softwareVer' string in 'device'")
 	if (!device.productKey && !device.factoryPin) {
 		if (!device.firmwareKey)
 			// no PK, FK, FP
@@ -72,20 +71,33 @@ export async function pullSchema(
 			throw Error("Needs 'license' object when only 'firmwareKey' set")
 		// no error: at least one key set + license for FK
 	}
-	if (license && !(license.uuid && license.authKey))
-		throw Error("Needs 'uuid' and 'authKey' string in 'license'")
-	if (
-		project &&
-		!(
+
+	if (license) {
+		const all = license.uuid && license.authKey
+		const any = license.uuid || license.authKey
+		if (any && !all)
+			throw Error("Needs 'uuid' and 'authKey' string in 'license'")
+		if (!any) license = undefined
+	}
+
+	if (project) {
+		const all =
 			project.baseUrl &&
 			project.accessKey &&
 			project.secretKey &&
 			project.assetId
-		)
-	)
-		throw Error(
-			"Needs 'baseUrl', 'accessKey', 'secretKey' and 'assetId' string in 'project'",
-		)
+		const any =
+			project.baseUrl ||
+			project.accessKey ||
+			project.secretKey ||
+			project.assetId
+		if (any && !all)
+			throw Error(
+				"Needs 'baseUrl', 'accessKey', 'secretKey' and 'assetId' string in 'project'",
+			)
+		if (!any) project = undefined
+	}
+
 	if (device.firmwareKey?.startsWith("key") === false)
 		throw Error("'firmwareKey' must start with 'key'")
 	if (device.productKey?.startsWith("key") === true)
@@ -149,7 +161,7 @@ export async function pullSchema(
 	const activeRequest = {
 		token: token,
 		productKey: productKey,
-		softVer: device.softwareVer,
+		softVer: device.softwareVer ?? "1.0.0",
 		protocolVer: software?.pv ?? "2.2",
 		baselineVer: software?.bv ?? "40.00",
 		cadVer: software?.cadv ?? "1.0.3",
