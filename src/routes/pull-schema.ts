@@ -41,6 +41,7 @@ type ResponseData = {
 	modelResponse: ObjectType
 	detailsResponse: ObjectType
 	updateResponse: ObjectType
+	deleteResponse: boolean
 	errors: string[]
 }
 
@@ -224,6 +225,15 @@ export async function pullSchema(
 				path: `/v2.0/cloud/thing/${devId}/firmware`,
 				method: "GET",
 			}),
+		)
+	} catch (e) {
+		errors.push(`${e}`)
+	}
+
+	// unpair the device to make switching category possible
+	try {
+		responseContext.deleteResponse = await unpack(
+			tuya.device.delete({ device_id: devId }),
 		)
 	} catch (e) {
 		errors.push(`${e}`)
