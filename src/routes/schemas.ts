@@ -1,5 +1,12 @@
+import { DeviceActiveResponse } from "../api/device-types"
 import { ObjectType } from "../types"
-import { Env } from "./common"
+import { checkAuth, Env } from "./common"
+
+type ProductType = {
+	activeResponse: DeviceActiveResponse
+	modelResponse: ObjectType
+	detailsResponse: ObjectType
+}
 
 export async function schemas(
 	request: Request,
@@ -7,6 +14,33 @@ export async function schemas(
 	responseContext: any,
 ): Promise<ObjectType | null | string[] | Response> {
 	const url = new URL(request.url)
+
+	if (url.pathname.split("/")[2] === "rebuild") {
+		let auth
+		if ((auth = checkAuth(request, env, true))) return auth
+
+		const result = []
+		const productKeys = (await env.PRODUCTS.list()).keys.map((k) => k.name)
+		for (const productKey of productKeys) {
+			const product = await env.PRODUCTS.get<ProductType>(
+				productKey,
+				"json",
+			)
+			if (!product) continue
+			const { activeResponse, modelResponse, detailsResponse } = product
+			result.push(activeResponse.schemaId)
+			await env.SCHEMAS.put(
+				activeResponse.schemaId,
+				JSON.stringify(
+					{ activeResponse, modelResponse, detailsResponse },
+					null,
+					"\t",
+				),
+			)
+		}
+
+		return Response.json(result)
+	}
 
 	if (request.method == "GET") {
 		let schemaKey: string

@@ -237,9 +237,14 @@ export async function pullSchema(
 		JSON.stringify(responseContext, null, "\t"),
 	)
 	if (activeResponse.schemaId) {
+		const detailsResponse = responseContext.detailsResponse
 		await env.SCHEMAS.put(
 			activeResponse.schemaId,
-			JSON.stringify({ activeResponse, modelResponse }, null, "\t"),
+			JSON.stringify(
+				{ activeResponse, modelResponse, detailsResponse },
+				null,
+				"\t",
+			),
 		)
 	} else {
 		errors.push("Schema ID not found in activeResponse")
