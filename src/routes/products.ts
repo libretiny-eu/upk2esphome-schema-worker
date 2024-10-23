@@ -8,7 +8,7 @@ export async function products(
 ): Promise<ObjectType | null | string[] | Response> {
 	const url = new URL(request.url)
 
-	if (request.method == "GET") {
+	if (request.method == "GET" || request.method == "DELETE") {
 		let productKey: string
 		if ((productKey = url.pathname.split("/")[2])) {
 			const product = await env.PRODUCTS.get<ObjectType>(
@@ -16,6 +16,10 @@ export async function products(
 				"json",
 			)
 			if (!product) return new Response(null, { status: 404 })
+			if (request.method == "DELETE") {
+				await env.PRODUCTS.delete(productKey)
+				return new Response(null, { status: 204 })
+			}
 			return product
 		}
 		return (await env.PRODUCTS.list()).keys.map((k) => k.name)

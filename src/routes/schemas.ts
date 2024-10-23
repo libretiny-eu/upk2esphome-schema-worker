@@ -42,11 +42,15 @@ export async function schemas(
 		return Response.json(result)
 	}
 
-	if (request.method == "GET") {
+	if (request.method == "GET" || request.method == "DELETE") {
 		let schemaKey: string
 		if ((schemaKey = url.pathname.split("/")[2])) {
 			const schema = await env.SCHEMAS.get<ObjectType>(schemaKey, "json")
 			if (!schema) return new Response(null, { status: 404 })
+			if (request.method == "DELETE") {
+				await env.SCHEMAS.delete(schemaKey)
+				return new Response(null, { status: 204 })
+			}
 			return schema
 		}
 		return (await env.SCHEMAS.list()).keys.map((k) => k.name)

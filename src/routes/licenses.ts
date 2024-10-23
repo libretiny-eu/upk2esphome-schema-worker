@@ -12,7 +12,7 @@ export async function licenses(
 ): Promise<LicenseData | RequestData[] | null | string[] | Response> {
 	const url = new URL(request.url)
 
-	if (request.method == "GET") {
+	if (request.method == "GET" || request.method == "DELETE") {
 		let licenseKey: string
 		if ((licenseKey = url.pathname.split("/")[2])) {
 			const license = await env.LICENSES.get<LicenseData>(
@@ -20,6 +20,10 @@ export async function licenses(
 				"json",
 			)
 			if (!license) return new Response(null, { status: 404 })
+			if (request.method == "DELETE") {
+				await env.LICENSES.delete(licenseKey)
+				return new Response(null, { status: 204 })
+			}
 			return license
 		}
 		return (await env.LICENSES.list()).keys.map((k) => k.name)

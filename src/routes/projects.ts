@@ -14,7 +14,7 @@ export async function projects(
 ): Promise<ProjectData | RequestData | null | string[] | Response> {
 	const url = new URL(request.url)
 
-	if (request.method == "GET") {
+	if (request.method == "GET" || request.method == "DELETE") {
 		let projectKey: string
 		if ((projectKey = url.pathname.split("/")[2])) {
 			const project = await env.PROJECTS.get<ProjectData>(
@@ -22,6 +22,10 @@ export async function projects(
 				"json",
 			)
 			if (!project) return new Response(null, { status: 404 })
+			if (request.method == "DELETE") {
+				await env.PROJECTS.delete(projectKey)
+				return new Response(null, { status: 204 })
+			}
 			return project
 		}
 		return (await env.PROJECTS.list()).keys.map((k) => k.name)
