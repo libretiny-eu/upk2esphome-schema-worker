@@ -1,6 +1,5 @@
 import aesEcb from "aes-ecb"
-import { pad } from "pkcs7-padding"
-import { ObjectType } from "../types"
+import { ObjectType, RequestContext } from "../types"
 import { b64decode, bin2hex, md5 } from "../utils"
 
 type DeviceResponse = {
@@ -84,7 +83,7 @@ export class TuyaAPIConnection {
 	}
 
 	async encryptData(key: string, data: string): Promise<string> {
-		const encrypted = aesEcb.encrypt(key.substring(0, 16), pad(data))
+		const encrypted = aesEcb.encrypt(key.substring(0, 16), data)
 		const encryptedArray = b64decode(encrypted)
 		return `data=${bin2hex(encryptedArray).toUpperCase()}`
 	}
