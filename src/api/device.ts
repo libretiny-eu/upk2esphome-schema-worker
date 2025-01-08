@@ -14,6 +14,7 @@ type DeviceResponse = {
 export class TuyaAPIConnection {
 	devId: string | null = null
 	secKey: string | null = null
+	requests?: RequestContext[]
 
 	constructor(
 		private url: string,
@@ -41,31 +42,44 @@ export class TuyaAPIConnection {
 			"application/x-www-form-urlencoded; charset=UTF-8",
 		)
 
-		console.log(
-			"device API request",
-			key,
-			url,
-			JSON.stringify(params),
-			JSON.stringify(data),
-			method,
-		)
+		const context: RequestContext = { request: null, response: null }
+		if (this.requests !== undefined) this.requests.push(context)
 
-		const r = await fetch(`http://${parsedUrl.hostname}${requestLine}`, {
+		const request = {
+			method: method,
+			url: `http://${parsedUrl.hostname}${requestLine}`,
+			headers: Object.fromEntries(headers.entries()),
+			params: params,
+			data: data,
+			body: body,
+		}
+		context.request = request
+		console.log(JSON.stringify(context.request, null, 4))
+
+		const r = await fetch(request.url, {
 			method: method,
 			headers: headers,
 			body: body,
 		})
 		const result = await r.json<DeviceResponse>()
+		const response = {
+			code: r.status,
+			headers: Object.fromEntries(r.headers.entries()),
+			body: result,
+			data: undefined,
+		}
+		context.response = response
 		if (result.success === false)
 			throw Error(`${result.errorCode}: ${result.errorMsg}`)
 
 		const decrypted = await this.decryptData(key, result.result!!)
 		const decryptedResult = JSON.parse(decrypted)
+		response.data = decryptedResult
+		console.log(JSON.stringify(context.response, null, 4))
 		if (decryptedResult.success === false)
 			throw Error(
 				`${decryptedResult.errorCode}: ${decryptedResult.errorMsg}`,
 			)
-		console.log("device API response", JSON.stringify(decryptedResult))
 		return decryptedResult.result
 	}
 

@@ -3,7 +3,7 @@ import { TuyaAPIConnection } from "../api/device"
 import { DeviceActiveResponse } from "../api/device-types"
 import { fetchRegionEndpoint } from "../api/iot-dns"
 import { patchContext } from "../api/patch"
-import { LicenseData, ObjectType, ProjectData } from "../types"
+import { LicenseData, ObjectType, ProjectData, RequestContext } from "../types"
 import {
 	checkAuth,
 	Env,
@@ -43,6 +43,7 @@ type ResponseData = {
 	updateResponse: ObjectType
 	deleteResponse: boolean
 	errors: string[]
+	requests?: RequestContext[]
 }
 
 export async function pullSchema(
@@ -124,8 +125,13 @@ export async function pullSchema(
 	project = project ?? (await getRandomProject(env))
 	license = license ?? (await getRandomLicense(env))
 
+	// if admin, save all requests for debugging
+	if (checkAuth(request, env, true) === null) responseContext.requests = []
+
 	// build cloud API
 	const tuya = new TuyaContext(project)
+	// @ts-ignore
+	tuya.requests = responseContext.requests
 	patchContext(tuya)
 
 	// generate registration token
@@ -158,6 +164,8 @@ export async function pullSchema(
 		license?.uuid,
 		license?.authKey,
 	)
+	conn.requests = responseContext.requests
+
 	// build activation payload
 	const activeRequest = {
 		token: token,

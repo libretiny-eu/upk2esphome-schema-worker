@@ -16,7 +16,9 @@ export default {
 
 		let response: ObjectType | null
 		let auth: Response | null
-		const responseContext = {}
+		const responseContext = {
+			requests: undefined,
+		}
 
 		try {
 			switch ("/" + url.pathname.split("/")[1]) {
@@ -54,9 +56,15 @@ export default {
 					return new Response(null, { status: 404 })
 			}
 		} catch (e) {
-			return new Response(JSON.stringify({ message: `${e}` }), {
-				status: 400,
-			})
+			return new Response(
+				JSON.stringify({
+					message: `${e}`,
+					requests: responseContext.requests,
+				}),
+				{
+					status: 400,
+				},
+			)
 		}
 
 		if (response instanceof Response) return response

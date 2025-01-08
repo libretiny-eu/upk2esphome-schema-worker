@@ -8,6 +8,7 @@ import {
 	TuyaOpenApiClientRequestQueryBase,
 } from "@tuya/tuya-connector-nodejs"
 import { bin2hex, sha256 } from "../utils"
+import { RequestContext } from "../types"
 
 async function sign(str: string, secret: string) {
 	const text = new TextEncoder().encode(str)
@@ -29,17 +30,30 @@ function toJson(obj: any): string | null {
 export function patchContext(tuya: TuyaContext) {
 	// @ts-ignore
 	tuya.client.rpc = async (request) => {
-		console.log(JSON.stringify(request, null, 4))
+		const context: RequestContext = { request: null, response: null }
+		// @ts-ignore
+		if (tuya.requests !== undefined)
+			// @ts-ignore
+			tuya.requests.push(context)
+
+		context.request = request
+		console.log(JSON.stringify(context.request, null, 4))
+
 		const r = await fetch(request.url as string, {
 			method: request.method,
 			headers: request.headers,
 			body: toJson(request.data),
 		})
 		const responseText = await r.text()
-		console.log(responseText)
 		const response = {
+			code: r.status,
+			headers: Object.fromEntries(r.headers.entries()),
 			data: JSON.parse(responseText),
 		}
+
+		context.response = response
+		console.log(JSON.stringify(context.response, null, 4))
+
 		return response
 	}
 	// @ts-ignore
