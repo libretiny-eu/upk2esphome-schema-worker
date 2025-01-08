@@ -115,6 +115,8 @@ export async function pullSchema(
 	// try cached results
 	const cached = await env.PRODUCTS.get<ResponseData>(productKey, "json")
 	if (cached) {
+		// don't serve requests back
+		cached.requests = undefined
 		if (!forceUpdate) return cached
 		// make sure we're admin
 		let auth
@@ -250,6 +252,9 @@ export async function pullSchema(
 	responseContext.cachedAt = Date.now()
 	responseContext.cacheKey = productKey
 
+	// clear requests if no error
+	responseContext.requests = undefined
+
 	await env.PRODUCTS.put(
 		productKey,
 		JSON.stringify(responseContext, null, "\t"),
@@ -268,6 +273,7 @@ export async function pullSchema(
 		errors.push("Schema ID not found in activeResponse")
 	}
 
+	// indicate cache miss
 	responseContext.cachedAt = false
 	return {}
 }
