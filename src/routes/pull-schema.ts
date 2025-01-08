@@ -41,6 +41,7 @@ type ResponseData = {
 	modelResponse: ObjectType
 	detailsResponse: ObjectType
 	updateResponse: ObjectType
+	upgradeResponse: ObjectType
 	deleteResponse: boolean
 	errors: string[]
 	requests?: RequestContext[]
@@ -188,6 +189,8 @@ export async function pullSchema(
 		activeRequest,
 		true,
 	)
+	conn.devId = activeResponse.devId
+	conn.secKey = activeResponse.secKey
 	const { schema: schemaText, devId } = activeResponse
 	activeResponse.schema = JSON.parse(schemaText)
 	responseContext.activeResponse = activeResponse
@@ -226,6 +229,19 @@ export async function pullSchema(
 		responseContext.detailsResponse = await unpack(
 			tuya.device.detail({ device_id: devId }),
 		)
+	} catch (e) {
+		errors.push(`${e}`)
+	}
+	try {
+		const upgradeRequest = {
+			type: "0",
+		}
+		const upgradeResponse = await conn.request<ObjectType>(
+			"tuya.device.upgrade.get",
+			"4.3",
+			upgradeRequest,
+		)
+		responseContext.upgradeResponse = upgradeResponse
 	} catch (e) {
 		errors.push(`${e}`)
 	}
