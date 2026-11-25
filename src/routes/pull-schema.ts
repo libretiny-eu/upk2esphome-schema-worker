@@ -113,8 +113,11 @@ export async function pullSchema(
 		device.factoryPin ?? device.productKey ?? device.firmwareKey
 	if (!productKey) throw Error("Missing 'productKey'")
 
+	const softwareVer = device.softwareVer ?? "1.0.0"
+	const cacheKey = `${productKey}-${softwareVer}`
+
 	// try cached results
-	const cached = await env.PRODUCTS.get<ResponseData>(productKey, "json")
+	const cached = await env.PRODUCTS.get<ResponseData>(cacheKey, "json")
 	if (cached) {
 		// don't serve requests back
 		cached.requests = undefined
@@ -173,7 +176,7 @@ export async function pullSchema(
 	const activeRequest = {
 		token: token,
 		productKey: productKey,
-		softVer: device.softwareVer ?? "1.0.0",
+		softVer: softwareVer,
 		protocolVer: software?.pv ?? "2.2",
 		baselineVer: software?.bv ?? "40.00",
 		cadVer: software?.cadv ?? "1.0.3",
@@ -266,13 +269,13 @@ export async function pullSchema(
 	}
 
 	responseContext.cachedAt = Date.now()
-	responseContext.cacheKey = productKey
+	responseContext.cacheKey = cacheKey
 
 	// clear requests if no error
 	responseContext.requests = undefined
 
 	await env.PRODUCTS.put(
-		productKey,
+		cacheKey,
 		JSON.stringify(responseContext, null, "\t"),
 	)
 	if (activeResponse.schemaId) {
